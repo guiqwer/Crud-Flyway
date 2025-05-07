@@ -2,7 +2,9 @@ package com.gui.crud.controllers;
 
 
 import com.gui.crud.dtos.AuthenticatorDto;
+import com.gui.crud.dtos.LoginResponseDto;
 import com.gui.crud.dtos.RegisterDto;
+import com.gui.crud.infra.security.TokenService;
 import com.gui.crud.model.user.User;
 import com.gui.crud.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -27,12 +29,18 @@ public class AuthenticatorController {
     @Autowired
     private UserRepository userRepository;
 
+
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticatorDto authenticatorDto){
         var usernamePassword = new UsernamePasswordAuthenticationToken(authenticatorDto.email(), authenticatorDto.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((User)auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 
     @PostMapping("/register")
